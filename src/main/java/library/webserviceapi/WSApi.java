@@ -1,5 +1,6 @@
 package library.webserviceapi;
 
+import com.squareup.okhttp.CertificatePinner;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -8,6 +9,7 @@ import java.io.IOException;
 
 import library.utils.async.AsyncJob;
 
+@SuppressWarnings("unused")
 public class WSApi {
 
     class Result {
@@ -17,6 +19,14 @@ public class WSApi {
     }
 
     OkHttpClient mClient = new OkHttpClient();
+
+    public void setPinningCertificate(String hostname, String publicKey) {
+        CertificatePinner certificatePinner = new CertificatePinner.Builder()
+                .add(hostname, publicKey) //"sha1/BOGUSPIN")
+                .build();
+
+        mClient.setCertificatePinner(certificatePinner);
+    }
 
     public void get(final String url, final OnFinishedWSApi listener) {
         get(null, url, listener);
