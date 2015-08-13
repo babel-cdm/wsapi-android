@@ -17,17 +17,130 @@ import library.utils.async.AsyncJob;
 public class WSApi {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public enum Type {GET, POST, PUT, DELETE;}
+    private OkHttpClient mClient;
+    private Input input;
 
-    private enum Type {GET, POST, PUT, DELETE}
+    class Input {
+        String id;
+        String type;
+        String url;
+        String body;
+        OnFinishedWSApi listener;
+        Map<String, String> header;
+    }
 
     class Result {
+
         String id;
         String data;
         Headers header;
         String exception;
     }
 
-    OkHttpClient mClient = new OkHttpClient();
+    public WSApi() {
+        this.input = new Input();
+        this.mClient = new OkHttpClient();
+    }
+
+    public WSApi id(String id) {
+        input.id = id;
+        return this;
+    }
+
+    public WSApi type(String type) {
+        input.type = type;
+        return this;
+    }
+
+    public WSApi url(String url) {
+        input.url = url;
+        return this;
+    }
+
+    public WSApi body(String body) {
+        input.body = body;
+        return this;
+    }
+
+    public WSApi header(Map<String, String> header) {
+        input.header = header;
+        return this;
+    }
+
+    public WSApi listener(OnFinishedWSApi listener) {
+        input.listener = listener;
+        return this;
+    }
+
+    private Type getType() {
+        if (input.type.equalsIgnoreCase("GET"))
+            return Type.GET;
+        else if (input.type.equalsIgnoreCase("POST"))
+            return Type.POST;
+        else if (input.type.equalsIgnoreCase("PUT"))
+            return Type.PUT;
+        else if (input.type.equalsIgnoreCase("DELETE"))
+            return Type.DELETE;
+        else
+            return null;
+    }
+
+    public void execute(){
+        if (input.url == null)
+            input.listener.onError(input.id, "No se ha indicado URL");
+        else if (input.type == null)
+            input.listener.onError(input.id, "No se ha indicado el tipo de petición");
+        else {
+            new AsyncJob.AsyncJobBuilder<Result>()
+                    .doInBackground(new AsyncJob.AsyncAction<Result>() {
+                        @Override
+                        public Result doAsync() {
+
+                            Result result = new Result();
+                            result.id = input.id;
+
+                            Request request = null;
+                            switch (getType()) {
+                                case GET:
+                                    request = doGet(input.url, input.header);
+                                    break;
+                                case POST:
+                                    request = doPost(input.url, input.header, input.body);
+                                    break;
+                                case PUT:
+                                    request = doPut(input.url, input.header, input.body);
+                                    break;
+                                case DELETE:
+                                    request = doDelete(input.url, input.header, input.body);
+                                    break;
+                            }
+
+                            try {
+                                Response response = mClient.newCall(request).execute();
+                                result.data = response.body().string();
+                                result.header = response.headers();
+
+                            } catch (final IOException e) {
+                                result.exception = e.toString();
+                            }
+                            return result;
+                        }
+                    })
+                    .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
+                        @Override
+                        public void onResult(Result result) {
+                            if (result.exception != null) {
+                                input.listener.onError(result.id, result.exception);
+                            } else {
+                                input.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
+                            }
+                        }
+
+                    }).create().start();
+
+        }
+    }
 
     public void setPinningCertificate(String hostname, String publicKey) {
         CertificatePinner certificatePinner = new CertificatePinner.Builder()
@@ -35,65 +148,6 @@ public class WSApi {
                 .build();
 
         mClient.setCertificatePinner(certificatePinner);
-    }
-
-    public void get(String url, OnFinishedWSApi listener) {
-        get(null, url, null, listener);
-    }
-
-    public void get(String id, String url, Map<String, String> header, OnFinishedWSApi listener) {
-        execute(Type.GET, id, url, header, null, listener);
-    }
-
-    public void post(String id, String url, Map<String, String> header, String json, OnFinishedWSApi listener) {
-        execute(Type.POST, id, url, header, json, listener);
-    }
-
-    private void execute(final Type type, final String id, final String url, final Map<String, String> header, final String json, final OnFinishedWSApi listener) {
-        new AsyncJob.AsyncJobBuilder<Result>()
-                .doInBackground(new AsyncJob.AsyncAction<Result>() {
-                    @Override
-                    public Result doAsync() {
-
-                        Result result = new Result();
-                        result.id = id;
-
-                        Request request = null;
-                        switch (type) {
-                            case GET:
-                                request = doGet(url, header);
-                                break;
-                            case POST:
-                                request = doPost(url, header, json);
-                                break;
-                            case PUT:
-                                break;
-                            case DELETE:
-                                break;
-                        }
-
-                        try {
-                            Response response = mClient.newCall(request).execute();
-                            result.data = response.body().string();
-                            result.header = response.headers();
-
-                        } catch (final IOException e) {
-                            result.exception = e.toString();
-                        }
-                        return result;
-                    }
-                })
-                .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
-                    @Override
-                    public void onResult(Result result) {
-                        if (result.exception != null) {
-                            listener.onError(result.id, result.exception);
-                        } else {
-                            listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
-                        }
-                    }
-
-                }).create().start();
     }
 
     private Request doGet(String url, Map<String, String> header) {
@@ -115,6 +169,36 @@ public class WSApi {
         Request.Builder request = new Request.Builder();
         request.url(url);
         request.post(body);
+
+        if (header != null) {
+            for (Map.Entry<String, String> entry : header.entrySet()) {
+                request.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return request.build();
+    }
+
+    private Request doPut(String url, Map<String, String> header, String json) {
+
+        RequestBody body = RequestBody.create(JSON, json);
+        Request.Builder request = new Request.Builder();
+        request.url(url);
+        request.put(body);
+
+        if (header != null) {
+            for (Map.Entry<String, String> entry : header.entrySet()) {
+                request.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return request.build();
+    }
+
+    private Request doDelete(String url, Map<String, String> header, String json) {
+
+        RequestBody body = RequestBody.create(JSON, json);
+        Request.Builder request = new Request.Builder();
+        request.url(url);
+        request.delete(body);
 
         if (header != null) {
             for (Map.Entry<String, String> entry : header.entrySet()) {
