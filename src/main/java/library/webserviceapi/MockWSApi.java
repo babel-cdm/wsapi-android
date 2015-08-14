@@ -25,7 +25,6 @@ public class MockWSApi {
                 String res = mResponse.get(request.getPath());
                 if (res != null) {
                     return new MockResponse().setResponseCode(200).setBody(res);
-
                 }
                 return new MockResponse().setResponseCode(404);
             }
