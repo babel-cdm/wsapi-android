@@ -18,7 +18,7 @@ public class WSApi {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public enum Type {GET, POST, PUT, DELETE;}
+    public enum Type {GET, POST, PUT, DELETE}
     private OkHttpClient mClient;
     private RequestParams params;
 
