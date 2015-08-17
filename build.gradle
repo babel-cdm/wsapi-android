@@ -32,10 +32,11 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    compile project(':utils')
+
     // Support
     compile 'com.android.support:appcompat-v7:22.2.0'
 
-    compile project(':library.webserviceapi.utils')
 
     //OkHttp
     compile 'com.squareup.okhttp:okhttp:2.4.0'
