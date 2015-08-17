@@ -8,20 +8,21 @@ import java.util.Map;
 public class MockWSResponse {
 
     public enum ResponseType {FLAT, PATH}
-    Map<String, String> responses;
+
+    String response;
     ResponseType type;
 
-    public MockWSResponse(Map<String, String> responses, ResponseType type) {
-        this.responses = responses;
+    public MockWSResponse(String response, ResponseType type) {
+        this.response = response;
         this.type = type;
     }
 
-    public Map<String, String> getResponses() {
-        return responses;
+    public String getResponse() {
+        return response;
     }
 
-    public void setResponses(Map<String, String> responses) {
-        this.responses = responses;
+    public void setResponse(String response) {
+        this.response = response;
     }
 
     public ResponseType getType() {

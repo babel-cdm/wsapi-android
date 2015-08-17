@@ -8,6 +8,7 @@ import com.squareup.okhttp.mockwebserver.MockWebServer;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
 import library.utils.async.AsyncJob;
 import library.webserviceapi.utils.FileReader;
@@ -17,39 +18,21 @@ public class MockWSApi {
 
     private MockWebServer mServer;
     private Dispatcher mDispatcher;
-    //    private Map<String, String>  mResponse;
-    private MockWSResponse mResponse;
+        private Map<String, MockWSResponse>  mResponse;
+//    private MockWSResponse mResponse;
 
-/*    public MockWSApi init(Map<String, String> response, final Context context) {
+    public MockWSApi init(final Map<String, MockWSResponse> response, final Context context) {
         this.mServer = new MockWebServer();
         this.mResponse = response;
         this.mDispatcher = new Dispatcher() {
             @Override
             public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
-                String res = mResponse.get(request.getPath());
+                String res = mResponse.get(request.getPath()).getResponse();
                 if (res != null) {
-                    return new MockResponse().setResponseCode(200).setBody(FileReader.readFromfile(context, res));
-                }
-                return new MockResponse().setResponseCode(404);
-            }
-        };
-
-        return this;
-    }*/
-
-    public MockWSApi init(final MockWSResponse response, final Context context) {
-        this.mServer = new MockWebServer();
-        this.mResponse = response;
-        this.mDispatcher = new Dispatcher() {
-            @Override
-            public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
-                String res = mResponse.getResponses().get(request.getPath());
-                if (res != null) {
-                    if (response.getType().equals(MockWSResponse.ResponseType.PATH))
+                    if (mResponse.get(request.getPath()).getType().equals(MockWSResponse.ResponseType.PATH))
                         return new MockResponse().setResponseCode(200).setBody(FileReader.readFromfile(context, res));
-                    else if (response.getType().equals(MockWSResponse.ResponseType.FLAT))
+                    else if (mResponse.get(request.getPath()).getType().equals(MockWSResponse.ResponseType.FLAT))
                         return new MockResponse().setResponseCode(200).setBody(res);
-
                 }
                 return new MockResponse().setResponseCode(404);
             }
