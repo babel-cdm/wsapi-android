@@ -1,4 +1,4 @@
-package utils;
+package library.webserviceapi.utils;
 
 import java.util.Map;
 

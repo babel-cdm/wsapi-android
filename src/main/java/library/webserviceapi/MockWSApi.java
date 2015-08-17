@@ -8,11 +8,10 @@ import com.squareup.okhttp.mockwebserver.MockWebServer;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 
 import java.io.IOException;
-import java.util.Map;
 
 import library.utils.async.AsyncJob;
-import utils.FileReader;
-import utils.MockWSResponse;
+import library.webserviceapi.utils.FileReader;
+import library.webserviceapi.utils.MockWSResponse;
 
 public class MockWSApi {
 
