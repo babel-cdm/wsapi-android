@@ -19,6 +19,7 @@ public class WSApi {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     public enum Type {GET, POST, PUT, DELETE}
+
     private OkHttpClient mClient;
     private RequestParams params;
 
@@ -37,6 +38,7 @@ public class WSApi {
         String data;
         Headers header;
         String exception;
+        int code;
     }
 
     public void execute() {
@@ -59,6 +61,7 @@ public class WSApi {
                                 Response response = mClient.newCall(request).execute();
                                 result.data = response.body().string();
                                 result.header = response.headers();
+                                result.code = response.code();
 
                             } catch (final IOException e) {
                                 result.exception = e.toString();
@@ -70,7 +73,9 @@ public class WSApi {
                         @Override
                         public void onResult(Result result) {
                             if (result.exception != null) {
-                                params.listener.onError(result.id, result.exception);
+                                params.listener.onException(result.id, result.exception);
+                            } else if (result.code != 200) {
+                                params.listener.onError(result.id, result.data);
                             } else {
                                 params.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
                             }
@@ -80,6 +85,18 @@ public class WSApi {
 
         }
     }
+
+/*    private void parseError(Result result) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        try {
+            ErrorRespone errorResponse = objectMapper.readValue(error, ParseErrorResponse.class);
+//            return errorResponse;
+        } catch (IOException e) {
+//            return null;
+        }
+    }*/
 
     public void setPinningCertificate(String hostname, String publicKey) {
         CertificatePinner certificatePinner = new CertificatePinner.Builder()

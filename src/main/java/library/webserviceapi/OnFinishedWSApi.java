@@ -4,6 +4,7 @@ import com.squareup.okhttp.Headers;
 
 public interface OnFinishedWSApi {
 
-    public void onError(String id, String error);
-    public void onSuccess(String id,  Headers header, String data);
+    void onError(String id, String error);
+    void onSuccess(String id,  Headers header, String data);
+    void onException(String id, String exception);
 }
