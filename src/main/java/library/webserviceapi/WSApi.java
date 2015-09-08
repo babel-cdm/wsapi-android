@@ -1,5 +1,7 @@
 package library.webserviceapi;
 
+import android.util.Log;
+
 import com.squareup.okhttp.CertificatePinner;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
@@ -9,6 +11,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import library.utils.async.AsyncJob;
@@ -108,8 +111,19 @@ public class WSApi {
 
     private Request doRequest() {
         Request.Builder request = new Request.Builder();
-        request.url(params.url);
+        if (params.urlParams == null) {
+            request.url(params.url);
+        } else {
+            String url = params.url;
+            Iterator it = params.urlParams.entrySet().iterator();
 
+            while (it.hasNext()) {
+                Map.Entry e = (Map.Entry) it.next();
+                url += "?" + e.getKey() + "=" + e.getValue();
+            }
+
+            request.url(url);
+        }
         if (!params.type.equals(params.type.GET)) {
             RequestBody body = RequestBody.create(JSON, params.body);
             switch (params.type) {

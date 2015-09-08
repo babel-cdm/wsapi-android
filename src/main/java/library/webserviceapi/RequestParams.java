@@ -12,6 +12,12 @@ public class RequestParams {
     String body;
     OnFinishedWSApi listener;
     Map<String, String> header;
+    Map<String, String> urlParams;
+
+    public RequestParams setUrlParams(Map<String, String> urlParams) {
+        this.urlParams = urlParams;
+        return this;
+    }
 
     public RequestParams setId(String id) {
         this.id = id;
