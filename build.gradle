@@ -6,6 +6,21 @@ android {
     buildToolsVersion "23.0.0"
 
     packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/services/com.fasterxml.jackson.core.ObjectCodec'
+        exclude 'META-INF/services/com.fasterxml.jackson.core.JsonFactory'
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
 
@@ -34,6 +49,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    //MultidexApp
+    compile 'com.android.support:multidex:1.0.0'
+
     compile project(':utils')
 
     // Support
@@ -51,7 +69,7 @@ dependencies {
     provided 'org.glassfish:javax.annotation:10.0-b28'
 
     //Jackson library for parsing webservices' responses into java objects
-    compile 'com.fasterxml.jackson.core:jackson-core:2.5.3'
-    compile 'com.fasterxml.jackson.core:jackson-annotations:2.5.3'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.3'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.6.2'
+    //compile ('com.fasterxml.jackson.core:jackson-annotations:2.6.2')
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.2'
 }

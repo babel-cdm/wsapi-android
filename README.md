@@ -1,8 +1,7 @@
-Web Service API
+# Web Service API
 _________________________________________________________________________________
 
 Este api puede ejecutar peticiones del tipo:
-
 _________________________________________________________________________________
 
 	- PUT
@@ -13,7 +12,6 @@ ________________________________________________________________________________
 _________________________________________________________________________________
 
 Los parámetro que recibe la petición son:
-
 _________________________________________________________________________________
 
 	- TYPE: Wsapi.Type (enumerado con el tipo de petición)
@@ -53,8 +51,13 @@ ________________________________________________________________________________
 
 __________________________________________________________________________________
 
-
 Si el resultado de la ejecución es correcto, tendremos la respuesta en el método onSuccess de la interfaz, acompañada del
 id de la llamada y de la cabecera
-
 _________________________________________________________________________________
+
+Si tu libreria usa jackson, deberás importar el poryecto de la siguiente forma:
+
+    compile(project(':wsapi')) {
+        exclude group: 'com.fasterxml.jackson.core';
+    }
+__________________________________________________________________________________
