@@ -11,7 +11,9 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import library.utils.async.AsyncJob;
@@ -22,6 +24,12 @@ public class WSApi {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     public enum Type {GET, POST, PUT, DELETE}
+    public static List<Integer> httpCodeOK = new ArrayList<>();
+    static {
+        httpCodeOK.add(200);
+        httpCodeOK.add(201);
+        httpCodeOK.add(202);
+    }
 
     private OkHttpClient mClient;
     private RequestParams params;
@@ -77,7 +85,7 @@ public class WSApi {
                         public void onResult(Result result) {
                             if (result.exception != null) {
                                 params.listener.onException(result.id, result.exception);
-                            } else if (result.code != 200) {
+                            } else if (!httpCodeOK.contains(result.code)) {
                                 params.listener.onError(result.id, result.data);
                             } else {
                                 params.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
