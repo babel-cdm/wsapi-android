@@ -11,6 +11,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ public class WSApi {
         httpCodeOK.add(200);
         httpCodeOK.add(201);
         httpCodeOK.add(202);
+        httpCodeOK.add(213);
     }
 
     private OkHttpClient mClient;
@@ -83,6 +85,7 @@ public class WSApi {
                     .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
                         @Override
                         public void onResult(Result result) {
+                            Log.d("API RESULT", "Code "+result.code);
                             if (result.exception != null) {
                                 params.listener.onException(result.id, result.exception);
                             } else if (!httpCodeOK.contains(result.code)) {
