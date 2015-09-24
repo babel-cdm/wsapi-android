@@ -13,6 +13,16 @@ public class RequestParams {
     OnFinishedWSApi listener;
     Map<String, String> header;
     Map<String, String> urlParams;
+    int secondsTimeout;
+
+    public int getSecondsTimeout() {
+        return secondsTimeout;
+    }
+
+    public RequestParams setSecondsTimeout(int secondsTimeout) {
+        this.secondsTimeout = secondsTimeout;
+        return this;
+    }
 
     public RequestParams setUrlParams(Map<String, String> urlParams) {
         this.urlParams = urlParams;

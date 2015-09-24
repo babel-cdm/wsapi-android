@@ -1,5 +1,9 @@
 package library.webserviceapi;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.squareup.okhttp.CertificatePinner;
@@ -11,21 +15,28 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import library.utils.async.AsyncJob;
+import library.utils.network.NetworkManager;
 
 @SuppressWarnings("unused")
 public class WSApi {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final long DEFAULT_SECONDS_TIMEOUT = 60;
 
     public enum Type {GET, POST, PUT, DELETE}
+
     public static List<Integer> httpCodeOK = new ArrayList<>();
+
     static {
         httpCodeOK.add(200);
         httpCodeOK.add(201);
@@ -52,6 +63,7 @@ public class WSApi {
         Headers header;
         String exception;
         int code;
+        boolean timeout;
     }
 
     public void execute() {
@@ -68,6 +80,16 @@ public class WSApi {
                             Result result = new Result();
                             result.id = params.id;
 
+                            if (params.getSecondsTimeout() != 0) {
+                                mClient.setConnectTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                                mClient.setReadTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                                mClient.setWriteTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                            } else {
+                                mClient.setConnectTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                                mClient.setReadTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                                mClient.setWriteTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                            }
+
                             Request request = doRequest();
 
                             try {
@@ -75,7 +97,8 @@ public class WSApi {
                                 result.data = response.body().string();
                                 result.header = response.headers();
                                 result.code = response.code();
-
+                            } catch (SocketTimeoutException socketTimeout) {
+                                result.timeout = true;
                             } catch (final IOException e) {
                                 result.exception = e.toString();
                             }
@@ -85,8 +108,10 @@ public class WSApi {
                     .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
                         @Override
                         public void onResult(Result result) {
-                            Log.d("API RESULT", "Code "+result.code);
-                            if (result.exception != null) {
+                            Log.d("API RESULT", "Code " + result.code);
+                            if (result.timeout) {
+                                params.listener.onTimeout(result.id);
+                            } else if (result.exception != null) {
                                 params.listener.onException(result.id, result.exception);
                             } else if (!httpCodeOK.contains(result.code)) {
                                 params.listener.onError(result.id, result.data);
@@ -99,18 +124,6 @@ public class WSApi {
 
         }
     }
-
-/*    private void parseError(Result result) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        try {
-            ErrorRespone errorResponse = objectMapper.readValue(error, ParseErrorResponse.class);
-//            return errorResponse;
-        } catch (IOException e) {
-//            return null;
-        }
-    }*/
 
     public void setPinningCertificate(String hostname, String publicKey) {
         CertificatePinner certificatePinner = new CertificatePinner.Builder()
