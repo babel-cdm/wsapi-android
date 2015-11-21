@@ -1,11 +1,10 @@
 package library.webserviceapi;
 
-import android.app.Activity;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.util.Log;
 
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
 import com.squareup.okhttp.CertificatePinner;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
@@ -14,23 +13,24 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import library.utils.async.AsyncJob;
-import library.utils.network.NetworkManager;
 
 @SuppressWarnings("unused")
 public class WSApi {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
+
     private static final long DEFAULT_SECONDS_TIMEOUT = 60;
 
     public enum Type {GET, POST, PUT, DELETE}
@@ -149,7 +149,8 @@ public class WSApi {
             request.url(url);
         }
         if (!params.type.equals(params.type.GET)) {
-            RequestBody body = RequestBody.create(JSON, params.body);
+            RequestBody body;
+            body = RequestBody.create(JSON, params.body);
             switch (params.type) {
                 case POST:
                     request.post(body);
@@ -172,5 +173,42 @@ public class WSApi {
 
     }
 
+    public void uploadFile(final Context context, final File file) {
+        new AsyncJob.AsyncJobBuilder<Result>()
+                .doInBackground(new AsyncJob.AsyncAction<Result>() {
+                    @Override
+                    public Result doAsync() {
+                        final Result result = new Result();
+                        result.id = params.id;
 
+                        Future uploading = Ion.with(context)
+                                .load(params.url)
+                                .setTimeout(params.secondsTimeout * 3)
+                                .setHeader("x-access-token", params.header.get("x-access-token"))
+                                .setMultipartFile("file", file)
+                                .asString()
+                                .withResponse()
+                                .setCallback(new FutureCallback<com.koushikdutta.ion.Response<String>>() {
+                                    @Override
+                                    public void onCompleted(Exception e, com.koushikdutta.ion.Response<String> resultCall) {
+                                        if (e != null) {
+                                            result.exception = e.toString();
+                                            params.listener.onError(result.id, e.toString());
+                                        } else {
+                                            params.listener.onSuccess(result.id, result.header, resultCall.getResult().toString().replaceAll("\\p{C}", ""));
+                                        }
+                                    }
+                                });
+
+                        return result;
+                    }
+                })
+                .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
+                    @Override
+                    public void onResult(Result result) {
+                        // TODO ...
+                    }
+
+                }).create().start();
+    }
 }

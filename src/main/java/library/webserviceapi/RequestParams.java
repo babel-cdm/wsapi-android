@@ -10,6 +10,7 @@ public class RequestParams {
     WSApi.Type type;
     String url;
     String body;
+    String file;
     OnFinishedWSApi listener;
     Map<String, String> header;
     Map<String, String> urlParams;
@@ -46,6 +47,11 @@ public class RequestParams {
 
     public RequestParams setBody(String body) {
         this.body = body;
+        return this;
+    }
+
+    public RequestParams setFile(String file) {
+        this.file = file;
         return this;
     }
 
