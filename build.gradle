@@ -9,6 +9,10 @@ android {
         abortOnError false
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES.txt'
         exclude 'META-INF/LICENSE.txt'
