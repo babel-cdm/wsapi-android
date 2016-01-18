@@ -20,10 +20,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import library.utils.async.AsyncJob;
+import library.webserviceapi.exception.EmptyTypeRequestException;
+import library.webserviceapi.exception.EmptyURLException;
 
 @SuppressWarnings("unused")
 public class WSApi {
@@ -64,6 +67,39 @@ public class WSApi {
         String exception;
         int code;
         boolean timeout;
+    }
+
+    public String executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{
+        if (params.url == null)
+            throw new EmptyURLException();
+        else if (params.type == null)
+            throw new EmptyTypeRequestException();
+        else {
+            String result = "";
+
+            if (params.getSecondsTimeout() != 0) {
+                mClient.setConnectTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                mClient.setReadTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                mClient.setWriteTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+            } else {
+                mClient.setConnectTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                mClient.setReadTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                mClient.setWriteTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+            }
+
+            Request request = doRequest();
+
+            try {
+                Response response = mClient.newCall(request).execute();
+                result = response.body().string();
+            } catch (SocketTimeoutException socketTimeout) {
+                throw socketTimeout;
+            } catch (final IOException e) {
+                throw e;
+            }
+
+            return result;
+        }
     }
 
     public void execute() {
