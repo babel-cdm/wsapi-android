@@ -10,7 +10,7 @@ import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import java.io.IOException;
 import java.util.Map;
 
-import library.utils.async.AsyncJob;
+import library.webserviceapi.utils.AsyncJob;
 import library.webserviceapi.utils.FileReader;
 import library.webserviceapi.utils.MockWSResponse;
 

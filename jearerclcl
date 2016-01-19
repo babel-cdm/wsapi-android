@@ -1,0 +1,99 @@
+[1mdiff --git a/build.gradle b/build.gradle[m
+[1mindex cc6dd82..2d17471 100644[m
+[1m--- a/build.gradle[m
+[1m+++ b/build.gradle[m
+[36m@@ -59,7 +59,6 @@[m [mdependencies {[m
+     //MultidexApp[m
+     compile 'com.android.support:multidex:1.0.0'[m
+ [m
+[31m-    compile project(':utils')[m
+     compile files('libs/ion-1.3.7.jar')[m
+     compile files('libs/androidasync-1.3.7.jar')[m
+ [m
+[1mdiff --git a/src/main/java/library/webserviceapi/MockWSApi.java b/src/main/java/library/webserviceapi/MockWSApi.java[m
+[1mindex 07e7cfa..9a12ff9 100644[m
+[1m--- a/src/main/java/library/webserviceapi/MockWSApi.java[m
+[1m+++ b/src/main/java/library/webserviceapi/MockWSApi.java[m
+[36m@@ -10,7 +10,7 @@[m [mimport com.squareup.okhttp.mockwebserver.RecordedRequest;[m
+ import java.io.IOException;[m
+ import java.util.Map;[m
+ [m
+[31m-import library.utils.async.AsyncJob;[m
+[32m+[m[32mimport library.webserviceapi.utils.AsyncJob;[m
+ import library.webserviceapi.utils.FileReader;[m
+ import library.webserviceapi.utils.MockWSResponse;[m
+ [m
+[1mdiff --git a/src/main/java/library/webserviceapi/WSApi.java b/src/main/java/library/webserviceapi/WSApi.java[m
+[1mindex 880f729..36c0c43 100644[m
+[1m--- a/src/main/java/library/webserviceapi/WSApi.java[m
+[1m+++ b/src/main/java/library/webserviceapi/WSApi.java[m
+[36m@@ -20,13 +20,12 @@[m [mimport java.util.ArrayList;[m
+ import java.util.Iterator;[m
+ import java.util.List;[m
+ import java.util.Map;[m
+[31m-import java.util.Objects;[m
+ import java.util.concurrent.Future;[m
+ import java.util.concurrent.TimeUnit;[m
+ [m
+[31m-import library.utils.async.AsyncJob;[m
+ import library.webserviceapi.exception.EmptyTypeRequestException;[m
+ import library.webserviceapi.exception.EmptyURLException;[m
+[32m+[m[32mimport library.webserviceapi.utils.AsyncJob;[m
+ [m
+ @SuppressWarnings("unused")[m
+ public class WSApi {[m
+[36m@@ -38,15 +37,6 @@[m [mpublic class WSApi {[m
+ [m
+     public enum Type {GET, POST, PUT, DELETE}[m
+ [m
+[31m-    public static List<Integer> httpCodeOK = new ArrayList<>();[m
+[31m-[m
+[31m-    static {[m
+[31m-        httpCodeOK.add(200);[m
+[31m-        httpCodeOK.add(201);[m
+[31m-        httpCodeOK.add(202);[m
+[31m-        httpCodeOK.add(213);[m
+[31m-    }[m
+[31m-[m
+     private OkHttpClient mClient;[m
+     private RequestParams params;[m
+ [m
+[36m@@ -69,7 +59,7 @@[m [mpublic class WSApi {[m
+         boolean timeout;[m
+     }[m
+ [m
+[31m-    public String executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{[m
+[32m+[m[32m    public Response executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{[m
+         if (params.url == null)[m
+             throw new EmptyURLException();[m
+         else if (params.type == null)[m
+[36m@@ -89,16 +79,17 @@[m [mpublic class WSApi {[m
+ [m
+             Request request = doRequest();[m
+ [m
+[32m+[m[32m            Response response = null;[m
+[32m+[m
+             try {[m
+[31m-                Response response = mClient.newCall(request).execute();[m
+[31m-                result = response.body().string();[m
+[32m+[m[32m                response = mClient.newCall(request).execute();[m
+             } catch (SocketTimeoutException socketTimeout) {[m
+                 throw socketTimeout;[m
+             } catch (final IOException e) {[m
+                 throw e;[m
+             }[m
+ [m
+[31m-            return result;[m
+[32m+[m[32m            return response;[m
+         }[m
+     }[m
+ [m
+[36m@@ -149,7 +140,7 @@[m [mpublic class WSApi {[m
+                                 params.listener.onTimeout(result.id);[m
+                             } else if (result.exception != null) {[m
+                                 params.listener.onException(result.id, result.exception);[m
+[31m-                            } else if (!httpCodeOK.contains(result.code)) {[m
+[32m+[m[32m                            } else if (!(result.code>=200 && result.code<300)) {[m
+                                 params.listener.onError(result.id, result.data);[m
+                             } else {[m
+                                 params.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));[m

@@ -20,13 +20,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import library.utils.async.AsyncJob;
 import library.webserviceapi.exception.EmptyTypeRequestException;
 import library.webserviceapi.exception.EmptyURLException;
+import library.webserviceapi.utils.AsyncJob;
 
 @SuppressWarnings("unused")
 public class WSApi {
@@ -37,15 +36,6 @@ public class WSApi {
     private static final long DEFAULT_SECONDS_TIMEOUT = 60;
 
     public enum Type {GET, POST, PUT, DELETE}
-
-    public static List<Integer> httpCodeOK = new ArrayList<>();
-
-    static {
-        httpCodeOK.add(200);
-        httpCodeOK.add(201);
-        httpCodeOK.add(202);
-        httpCodeOK.add(213);
-    }
 
     private OkHttpClient mClient;
     private RequestParams params;
@@ -69,7 +59,7 @@ public class WSApi {
         boolean timeout;
     }
 
-    public String executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{
+    public Response executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{
         if (params.url == null)
             throw new EmptyURLException();
         else if (params.type == null)
@@ -89,16 +79,17 @@ public class WSApi {
 
             Request request = doRequest();
 
+            Response response = null;
+
             try {
-                Response response = mClient.newCall(request).execute();
-                result = response.body().string();
+                response = mClient.newCall(request).execute();
             } catch (SocketTimeoutException socketTimeout) {
                 throw socketTimeout;
             } catch (final IOException e) {
                 throw e;
             }
 
-            return result;
+            return response;
         }
     }
 
@@ -149,7 +140,7 @@ public class WSApi {
                                 params.listener.onTimeout(result.id);
                             } else if (result.exception != null) {
                                 params.listener.onException(result.id, result.exception);
-                            } else if (!httpCodeOK.contains(result.code)) {
+                            } else if (!(result.code>=200 && result.code<300)) {
                                 params.listener.onError(result.id, result.data);
                             } else {
                                 params.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
