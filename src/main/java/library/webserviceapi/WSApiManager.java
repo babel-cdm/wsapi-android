@@ -2,16 +2,22 @@ package library.webserviceapi;
 
 public class WSApiManager {
 
-    static WSApiComponent mComponent = DaggerWSApiComponent.builder()
-            .wSApiModule(new WSApiModule()).build();
+    private static WSApi wsapi = null;
+    private static MockWSApi mock = null;
 
     public static WSApi getWSApi() {
-        WSApi wsApi = mComponent.provideWSApi();
-        return wsApi;
+        if (wsapi == null) {
+            wsapi = new WSApi();
+        }
+
+        return wsapi;
     }
 
     public static MockWSApi getMockWSApi() {
-        MockWSApi mock = mComponent.provideMockWSApi();
+        if (mock == null) {
+            mock = new MockWSApi();
+        }
+
         return mock;
     }
 }
