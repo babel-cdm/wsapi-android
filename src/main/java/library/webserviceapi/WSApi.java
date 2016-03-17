@@ -59,7 +59,7 @@ public class WSApi {
         boolean timeout;
     }
 
-    public Response executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException{
+    public Response executeSync() throws EmptyURLException, EmptyTypeRequestException, IOException, SocketTimeoutException {
         if (params.url == null)
             throw new EmptyURLException();
         else if (params.type == null)
@@ -94,11 +94,19 @@ public class WSApi {
     }
 
     public void execute() {
-        if (params.url == null)
-            params.listener.onError(params.id, "No se ha indicado URL");
-        else if (params.type == null)
-            params.listener.onError(params.id, "No se ha indicado el tipo de petición");
-        else {
+
+        //Check if URL is included
+        if (params.url == null) {
+            if (params.listener != null) {
+                params.listener.onError(params.id, "No se ha indicado URL");
+            }
+
+            //Check if type is included
+        } else if (params.type == null) {
+            if (params.listener != null) {
+                params.listener.onError(params.id, "No se ha indicado el tipo de petición");
+            }
+        } else {
             new AsyncJob.AsyncJobBuilder<Result>()
                     .doInBackground(new AsyncJob.AsyncAction<Result>() {
                         @Override
@@ -136,14 +144,21 @@ public class WSApi {
                         @Override
                         public void onResult(Result result) {
                             Log.d("API RESULT", "Code " + result.code);
-                            if (result.timeout) {
-                                params.listener.onTimeout(result.id);
-                            } else if (result.exception != null) {
-                                params.listener.onException(result.id, result.exception);
-                            } else if (!(result.code>=200 && result.code<300)) {
-                                params.listener.onError(result.id, result.data);
-                            } else {
-                                params.listener.onSuccess(result.id, result.header, result.data.replaceAll("\\p{C}", ""));
+                            if (params.listener != null) {
+                                if (result.timeout) {
+                                    params.listener.onTimeout(result.id);
+                                    Log.w(params.listener.getClass().getSimpleName(), result.id);
+                                } else if (result.exception != null) {
+                                    params.listener.onException(result.id, result.exception);
+                                    Log.e(params.listener.getClass().getSimpleName(), result.exception);
+                                } else if (!(result.code >= 200 && result.code < 300)) {
+                                    params.listener.onError(result.id, result.data);
+                                    Log.e(params.listener.getClass().getSimpleName(), result.data);
+                                } else {
+                                    String data = result.data.replaceAll("\\p{C}", "");
+                                    params.listener.onSuccess(result.id, result.header, data);
+                                    Log.d(params.listener.getClass().getSimpleName(), data);
+                                }
                             }
                         }
 
@@ -218,11 +233,13 @@ public class WSApi {
                                 .setCallback(new FutureCallback<com.koushikdutta.ion.Response<String>>() {
                                     @Override
                                     public void onCompleted(Exception e, com.koushikdutta.ion.Response<String> resultCall) {
-                                        if (e != null) {
-                                            result.exception = e.toString();
-                                            params.listener.onError(result.id, e.toString());
-                                        } else {
-                                            params.listener.onSuccess(result.id, result.header, resultCall.getResult().toString().replaceAll("\\p{C}", ""));
+                                        if (params.listener != null) {
+                                            if (e != null) {
+                                                result.exception = e.toString();
+                                                params.listener.onError(result.id, e.toString());
+                                            } else {
+                                                params.listener.onSuccess(result.id, result.header, resultCall.getResult().toString().replaceAll("\\p{C}", ""));
+                                            }
                                         }
                                     }
                                 });
