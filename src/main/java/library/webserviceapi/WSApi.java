@@ -16,9 +16,7 @@ import com.squareup.okhttp.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +48,6 @@ public class WSApi {
     }
 
     class Result {
-
         String id;
         String data;
         Headers header;
@@ -77,7 +74,7 @@ public class WSApi {
                 mClient.setWriteTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
             }
 
-            Request request = doRequest();
+            Request request = buildRequest();
 
             Response response = null;
 
@@ -97,15 +94,11 @@ public class WSApi {
 
         //Check if URL is included
         if (params.url == null) {
-            if (params.listener != null) {
-                params.listener.onError(params.id, "No se ha indicado URL");
-            }
+            params.listener.onError(params.id, "No se ha indicado URL");
 
             //Check if type is included
         } else if (params.type == null) {
-            if (params.listener != null) {
-                params.listener.onError(params.id, "No se ha indicado el tipo de petición");
-            }
+            params.listener.onError(params.id, "No se ha indicado el tipo de petición");
         } else {
             new AsyncJob.AsyncJobBuilder<Result>()
                     .doInBackground(new AsyncJob.AsyncAction<Result>() {
@@ -125,7 +118,7 @@ public class WSApi {
                                 mClient.setWriteTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
                             }
 
-                            Request request = doRequest();
+                            Request request = buildRequest();
 
                             try {
                                 Response response = mClient.newCall(request).execute();
@@ -144,21 +137,19 @@ public class WSApi {
                         @Override
                         public void onResult(Result result) {
                             Log.d("API RESULT", "Code " + result.code);
-                            if (params.listener != null) {
-                                if (result.timeout) {
-                                    params.listener.onTimeout(result.id);
-                                    Log.w(params.listener.getClass().getSimpleName(), result.id);
-                                } else if (result.exception != null) {
-                                    params.listener.onException(result.id, result.exception);
-                                    Log.e(params.listener.getClass().getSimpleName(), result.exception);
-                                } else if (!(result.code >= 200 && result.code < 300)) {
-                                    params.listener.onError(result.id, result.data);
-                                    Log.e(params.listener.getClass().getSimpleName(), result.data);
-                                } else {
-                                    String data = result.data.replaceAll("\\p{C}", "");
-                                    params.listener.onSuccess(result.id, result.header, data);
-                                    Log.d(params.listener.getClass().getSimpleName(), data);
-                                }
+                            if (result.timeout) {
+                                params.listener.onTimeout(result.id);
+                                Log.w(params.listener.getClass().getSimpleName(), result.id);
+                            } else if (result.exception != null) {
+                                params.listener.onException(result.id, result.exception);
+                                Log.e(params.listener.getClass().getSimpleName(), result.exception);
+                            } else if (!(result.code >= 200 && result.code < 300)) {
+                                params.listener.onError(result.id, result.data);
+                                Log.e(params.listener.getClass().getSimpleName(), result.data);
+                            } else {
+                                String data = result.data.replaceAll("\\p{C}", "");
+                                params.listener.onSuccess(result.id, result.header, data);
+                                Log.d(params.listener.getClass().getSimpleName(), data);
                             }
                         }
 
@@ -175,7 +166,7 @@ public class WSApi {
         mClient.setCertificatePinner(certificatePinner);
     }
 
-    private Request doRequest() {
+    private Request buildRequest() {
         Request.Builder request = new Request.Builder();
         if (params.urlParams == null) {
             request.url(params.url);
@@ -233,13 +224,11 @@ public class WSApi {
                                 .setCallback(new FutureCallback<com.koushikdutta.ion.Response<String>>() {
                                     @Override
                                     public void onCompleted(Exception e, com.koushikdutta.ion.Response<String> resultCall) {
-                                        if (params.listener != null) {
-                                            if (e != null) {
-                                                result.exception = e.toString();
-                                                params.listener.onError(result.id, e.toString());
-                                            } else {
-                                                params.listener.onSuccess(result.id, result.header, resultCall.getResult().toString().replaceAll("\\p{C}", ""));
-                                            }
+                                        if (e != null) {
+                                            result.exception = e.toString();
+                                            params.listener.onError(result.id, e.toString());
+                                        } else {
+                                            params.listener.onSuccess(result.id, result.header, resultCall.getResult().toString().replaceAll("\\p{C}", ""));
                                         }
                                     }
                                 });
