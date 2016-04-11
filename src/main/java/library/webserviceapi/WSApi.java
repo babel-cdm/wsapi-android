@@ -141,9 +141,9 @@ public class WSApi {
                             Log.d("API RESULT", "Code " + result.code);
                             if (result.timeout) {
                                 params.listener.onTimeout(result.id);
-                                Log.w(params.listener.getClass().getSimpleName(), result.id);
+//                                Log.w(params.listener.getClass().getSimpleName(), result.id.toString());
                             } else if (result.exception != null) {
-                                params.listener.onException(result.id, result.exception);
+                                params.listener.onException(result.id, result.exception.toString());
                                 Log.e(params.listener.getClass().getSimpleName(), result.exception);
                             } else if (!(result.code >= 200 && result.code < 300)) {
                                 params.listener.onError(result.id, result.data);
@@ -178,7 +178,11 @@ public class WSApi {
 
             while (it.hasNext()) {
                 Map.Entry e = (Map.Entry) it.next();
-                url += "?" + e.getKey() + "=" + e.getValue();
+                if(url.contains("?")){
+                    url += "&" + e.getKey() + "=" + e.getValue();
+                }else{
+                    url += "?" + e.getKey() + "=" + e.getValue();
+                }
             }
 
             request.url(url);
