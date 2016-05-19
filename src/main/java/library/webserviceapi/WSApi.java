@@ -13,18 +13,26 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.SocketTimeoutException;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import library.webserviceapi.utils.MySSLSocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import library.webserviceapi.exception.EmptyTypeRequestException;
 import library.webserviceapi.exception.EmptyURLException;
 import library.webserviceapi.utils.AsyncJob;
+import library.webserviceapi.utils.MySSLSocketFactory;
 
 @SuppressWarnings("unused")
 public class WSApi {
@@ -178,9 +186,9 @@ public class WSApi {
 
             while (it.hasNext()) {
                 Map.Entry e = (Map.Entry) it.next();
-                if(url.contains("?")){
+                if (url.contains("?")) {
                     url += "&" + e.getKey() + "=" + e.getValue();
-                }else{
+                } else {
                     url += "?" + e.getKey() + "=" + e.getValue();
                 }
             }
@@ -188,8 +196,7 @@ public class WSApi {
             request.url(url);
         }
         if (!params.type.equals(params.type.GET)) {
-            RequestBody body;
-            body = RequestBody.create(JSON, params.body);
+            RequestBody body = RequestBody.create(JSON, params.body);
             switch (params.type) {
                 case POST:
                     request.post(body);
@@ -249,5 +256,53 @@ public class WSApi {
                     }
 
                 }).create().start();
+    }
+
+    public WSApi setSSLCertificates(Context context, int[] certs) {
+        mClient.setSslSocketFactory(getSslSocketFactory(context, certs));
+        return this;
+    }
+
+    private SSLSocketFactory getSslSocketFactory(Context context, int[] certs) {
+
+        InputStream caInput = null;
+
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+
+            // Create a KeyStore containing our trusted CAs
+            String keyStoreType = KeyStore.getDefaultType();
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore.load(null, null);
+
+            for (int c : certs) {
+                caInput = new BufferedInputStream(context.getResources()
+                        .openRawResource(c));
+                keyStore.setCertificateEntry(c + "", cf.generateCertificate(caInput));
+            }
+
+            // Create a TrustManager that trusts the CAs in our KeyStore
+            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+            tmf.init(keyStore);
+
+            // Create an SSLContext that uses our TrustManager
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), null);
+
+            return sslContext.getSocketFactory();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (caInput != null)
+                try {
+                    caInput.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+
+        return null;
     }
 }
