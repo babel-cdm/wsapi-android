@@ -25,7 +25,9 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -196,7 +198,14 @@ public class WSApi {
             request.url(url);
         }
         if (!params.type.equals(params.type.GET)) {
-            RequestBody body = RequestBody.create(JSON, params.body);
+
+            RequestBody body;
+            if (params.requestBody == null) {
+                body = RequestBody.create(JSON, params.body);
+            } else {
+                body = params.requestBody;
+            }
+
             switch (params.type) {
                 case POST:
                     request.post(body);
@@ -258,11 +267,33 @@ public class WSApi {
                 }).create().start();
     }
 
-    public WSApi setSSLCertificates(Context context, int[] certs) {
+    /**
+     * @param context The context of the Activity or Application to get the certificate file from resources
+     * @param certs Array of Identifiers of the certificates as resource (for example: R.raw.trust)
+     * @param hostNameVerified Array of hostnames allowed
+     * @return the instance of WSApi with the new configuration
+     */
+    public WSApi setSSLCertificates(Context context, int[] certs, final String[] hostNameVerified) {
         mClient.setSslSocketFactory(getSslSocketFactory(context, certs));
+        mClient.setHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                for (String s : hostNameVerified) {
+                    if (s.equals(hostname)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         return this;
     }
 
+    /**
+     * @param context The context of the Activity or Application to get the certificate file from resources
+     * @param certs Array of Identifiers of the certificates as resource (for example: R.raw.trust)
+     * @return the SSL Socket Factory configurated with the new certificates
+     */
     private SSLSocketFactory getSslSocketFactory(Context context, int[] certs) {
 
         InputStream caInput = null;

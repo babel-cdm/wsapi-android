@@ -1,14 +1,19 @@
 package library.webserviceapi;
 
+import com.squareup.okhttp.RequestBody;
+
 import java.util.Map;
 
 /**
  * Created by borja.velasco on 13/08/2015.
  */
 public class RequestParams {
+
+
     String id;
     WSApi.Type type;
     String url;
+    RequestBody requestBody;
     String body;
     String file;
     OnFinishedWSApi listener;
@@ -64,6 +69,11 @@ public class RequestParams {
 
     public RequestParams setHeader(Map<String, String> header) {
         this.header = header;
+        return this;
+    }
+
+    public RequestParams setRequestBody(RequestBody body) {
+        this.requestBody = body;
         return this;
     }
 
