@@ -12,6 +12,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -59,9 +60,19 @@ public class WSApi {
         this.mClient.setSslSocketFactory(new MySSLSocketFactory());
     }
 
+    @Deprecated
     class Result {
         String id;
         String data;
+        Headers header;
+        String exception;
+        int code;
+        boolean timeout;
+    }
+
+    class ResponseResult {
+        String id;
+        ResponseBody data;
         Headers header;
         String exception;
         int code;
@@ -102,6 +113,7 @@ public class WSApi {
         }
     }
 
+    @Deprecated
     public void execute() {
 
         //Check if URL is included
@@ -169,6 +181,77 @@ public class WSApi {
 
         }
     }
+
+    public void executeWithObjectResult() {
+
+        //Check if URL is included
+        if (params.url == null) {
+            params.listener.onError(params.id, "No se ha indicado URL");
+
+            //Check if type is included
+        } else if (params.type == null) {
+            params.listener.onError(params.id, "No se ha indicado el tipo de petición");
+        } else {
+            new AsyncJob.AsyncJobBuilder<ResponseResult>()
+                    .doInBackground(new AsyncJob.AsyncAction<ResponseResult>() {
+                        @Override
+                        public ResponseResult doAsync() {
+
+                            ResponseResult result = new ResponseResult();
+                            result.id = params.id;
+
+                            if (params.getSecondsTimeout() != 0) {
+                                mClient.setConnectTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                                mClient.setReadTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                                mClient.setWriteTimeout(params.getSecondsTimeout(), TimeUnit.SECONDS);
+                            } else {
+                                mClient.setConnectTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                                mClient.setReadTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                                mClient.setWriteTimeout(DEFAULT_SECONDS_TIMEOUT, TimeUnit.SECONDS);
+                            }
+
+                            Request request = buildRequest();
+
+                            try {
+                                Response response = mClient.newCall(request).execute();
+                                result.data = response.body();
+                                result.header = response.headers();
+                                result.code = response.code();
+                            } catch (SocketTimeoutException socketTimeout) {
+                                result.timeout = true;
+                            } catch (final IOException e) {
+                                result.exception = e.toString();
+                            }
+                            return result;
+                        }
+                    })
+                    .doWhenFinished(new AsyncJob.AsyncResultAction<ResponseResult>() {
+                        @Override
+                        public void onResult(ResponseResult result) {
+                            Log.d("API RESULT", "Code " + result.code);
+                            if (result.timeout) {
+                                params.listener.onTimeout(result.id);
+//                                Log.w(params.listener.getClass().getSimpleName(), result.id.toString());
+                            } else if (result.exception != null) {
+                                params.listener.onException(result.id, result.exception.toString());
+//                                    Log.e(params.listener.getClass().getSimpleName(), result.exception);
+                            } else if (!(result.code >= 200 && result.code < 300)) {
+                                try {
+                                    params.listener.onError(result.id, result.data.string());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+//                                    Log.e(params.listener.getClass().getSimpleName(), result.data.string());
+                            } else {
+                                params.listener.onSuccess(result.id, result.header, result.data);
+//                                    Log.d(params.listener.getClass().getSimpleName(), result.data.string());
+                            }
+                        }
+                    }).create().start();
+
+        }
+    }
+
 
     public void setPinningCertificate(String hostname, String publicKey) {
         CertificatePinner certificatePinner = new CertificatePinner.Builder()
@@ -268,8 +351,8 @@ public class WSApi {
     }
 
     /**
-     * @param context The context of the Activity or Application to get the certificate file from resources
-     * @param certs Array of Identifiers of the certificates as resource (for example: R.raw.trust)
+     * @param context          The context of the Activity or Application to get the certificate file from resources
+     * @param certs            Array of Identifiers of the certificates as resource (for example: R.raw.trust)
      * @param hostNameVerified Array of hostnames allowed
      * @return the instance of WSApi with the new configuration
      */
@@ -291,7 +374,7 @@ public class WSApi {
 
     /**
      * @param context The context of the Activity or Application to get the certificate file from resources
-     * @param certs Array of Identifiers of the certificates as resource (for example: R.raw.trust)
+     * @param certs   Array of Identifiers of the certificates as resource (for example: R.raw.trust)
      * @return the SSL Socket Factory configurated with the new certificates
      */
     private SSLSocketFactory getSslSocketFactory(Context context, int[] certs) {
