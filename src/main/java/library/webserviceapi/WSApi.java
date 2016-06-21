@@ -43,7 +43,7 @@ public class WSApi {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
 
-    private static final long DEFAULT_SECONDS_TIMEOUT = 60;
+    private static final long DEFAULT_SECONDS_TIMEOUT = 30;
 
     public enum Type {GET, POST, PUT, DELETE}
 
