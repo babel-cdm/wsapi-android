@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import library.webserviceapi.utils.MySSLSocketFactory;
 import library.webserviceapi.exception.EmptyTypeRequestException;
 import library.webserviceapi.exception.EmptyURLException;
 import library.webserviceapi.utils.AsyncJob;
@@ -46,7 +45,7 @@ public class WSApi {
 
     public WSApi() {
         this.mClient = new OkHttpClient();
-        this.mClient.setSslSocketFactory(new MySSLSocketFactory());
+        //this.mClient.setSslSocketFactory(new MySSLSocketFactory());
     }
 
     class Result {
