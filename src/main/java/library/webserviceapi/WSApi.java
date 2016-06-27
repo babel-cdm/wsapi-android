@@ -1,6 +1,7 @@
 package library.webserviceapi;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import com.koushikdutta.async.future.FutureCallback;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import library.webserviceapi.exception.EmptyTypeRequestException;
 import library.webserviceapi.exception.EmptyURLException;
 import library.webserviceapi.utils.AsyncJob;
+import library.webserviceapi.utils.MySSLSocketFactory;
 
 @SuppressWarnings("unused")
 public class WSApi {
@@ -45,7 +47,9 @@ public class WSApi {
 
     public WSApi() {
         this.mClient = new OkHttpClient();
-        //this.mClient.setSslSocketFactory(new MySSLSocketFactory());
+        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+            this.mClient.setSslSocketFactory(new MySSLSocketFactory());
+        }
     }
 
     class Result {
