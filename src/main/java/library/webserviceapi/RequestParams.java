@@ -30,8 +30,6 @@ public class RequestParams {
         return this;
     }
 
-    /* As WSAPI is not singleton any more, it's not necessary to include an ID for each request */
-    @Deprecated
     public RequestParams setId(String id) {
         this.id = id;
         return this;
