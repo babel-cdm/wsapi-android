@@ -4,9 +4,6 @@ import com.squareup.okhttp.RequestBody;
 
 import java.util.Map;
 
-/**
- * Created by borja.velasco on 13/08/2015.
- */
 public class RequestParams {
 
 

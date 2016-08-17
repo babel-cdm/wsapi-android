@@ -6,9 +6,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/**
- * Created by borja.velasco on 14/08/2015.
- */
 public class FileReader {
     public static String readFromfile(Context context, String fileName) {
         StringBuilder returnString = new StringBuilder();

@@ -7,9 +7,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import java.io.IOException;
 
-/**
- * Created by BABEL Sistemas de Información.
- */
 public class Parser {
 
     public static String getJson(Object aClass) throws JsonProcessingException {
