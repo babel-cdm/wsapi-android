@@ -10,7 +10,7 @@ public interface OnFinishedWSApi {
     @Deprecated
     void onSuccess(String id, Headers header, String data);
 
-    void onSuccess(String id, Headers header, ResponseBody data);
+//    void onSuccess(String id, Headers header, ResponseBody data);
 
     void onException(String id, String exception);
 

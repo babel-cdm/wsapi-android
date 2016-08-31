@@ -182,7 +182,7 @@ public class WSApi {
         }
     }
 
-    public void executeWithObjectResult() {
+    /*public void executeWithObjectResult() {
 
         //Check if URL is included
         if (params.url == null) {
@@ -250,7 +250,7 @@ public class WSApi {
                     }).create().start();
 
         }
-    }
+    }*/
 
 
     public void setPinningCertificate(String hostname, String publicKey) {
