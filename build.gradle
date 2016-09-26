@@ -13,25 +13,6 @@ android {
         javaMaxHeapSize "4g"
     }
 
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES.txt'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/dependencies.txt'
-        exclude 'META-INF/LGPL2.1'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/ASL2.0'
-        exclude 'META-INF/services/com.fasterxml.jackson.core.ObjectCodec'
-        exclude 'META-INF/services/com.fasterxml.jackson.core.JsonFactory'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 23
@@ -68,8 +49,4 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     // Mock WebServer
     compile 'com.squareup.okhttp:mockwebserver:2.4.0'
-    //Jackson library for parsing webservices' responses into java objects
-    compile 'com.fasterxml.jackson.core:jackson-core:2.6.2'
-    //compile ('com.fasterxml.jackson.core:jackson-annotations:2.6.2')
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.2'
 }
