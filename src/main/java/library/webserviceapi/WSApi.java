@@ -248,7 +248,6 @@ public class WSApi {
                 .doWhenFinished(new AsyncJob.AsyncResultAction<Result>() {
                     @Override
                     public void onResult(Result result) {
-                        // TODO ...
                     }
 
                 }).create().start();
