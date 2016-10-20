@@ -144,7 +144,6 @@ public class WSApi {
                             Log.d("API RESULT", "Code " + result.code);
                             if (result.timeout) {
                                 params.listener.onTimeout(result.id);
-//                                Log.w(params.listener.getClass().getSimpleName(), result.id.toString());
                             } else if (result.exception != null) {
                                 params.listener.onException(result.id, result.exception.toString());
                                 Log.e(params.listener.getClass().getSimpleName(), result.exception);
